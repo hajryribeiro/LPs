@@ -1,0 +1,6 @@
+{
+  "name": "Construtor de Landing Page Imobiliária",
+  "description": "Landing page premium de alta conversão para o consultor imobiliário Rodrigo Sansão, especializada em flats e apartamentos na Zona Norte de João Pessoa. Convertida em um arquivo único de HTML estruturado com Tailwind CSS e Lucide Icons.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
