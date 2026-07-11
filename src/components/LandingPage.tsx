@@ -180,7 +180,7 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
         <div 
           className={`absolute inset-0 bg-cover bg-center pointer-events-none transition-all duration-300 ${pageBgParallax ? 'bg-fixed' : 'bg-scroll'}`}
           style={{ 
-            backgroundImage: `url(${pageBgUrl})`,
+            backgroundImage: `url(${pageBgUrl.startsWith('/') && !pageBgUrl.startsWith('//') && !pageBgUrl.startsWith('data:') ? pageBgUrl.substring(1) : pageBgUrl})`,
             opacity: pageBgOpacity / 100,
             zIndex: -1
           }}

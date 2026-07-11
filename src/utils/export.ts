@@ -61,8 +61,13 @@ async function imgToBase64(url: string): Promise<string> {
   if (!url) return '';
   if (url.startsWith('data:image/')) return url;
   
+  let fetchUrl = url;
+  if (url.startsWith('/') && !url.startsWith('//')) {
+    fetchUrl = url.substring(1);
+  }
+  
   try {
-    const response = await fetch(url);
+    const response = await fetch(fetchUrl);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const blob = await response.blob();
     return new Promise((resolve, reject) => {

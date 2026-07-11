@@ -289,6 +289,13 @@ export default function EditableImage({
     transition: isDragging ? 'none' : 'transform 0.15s ease-out',
   };
 
+  const getDisplaySrc = (url: string) => {
+    if (url && url.startsWith('/') && !url.startsWith('//') && !url.startsWith('data:')) {
+      return url.substring(1);
+    }
+    return url;
+  };
+
   return (
     <div ref={containerRef} className={`relative group/img-container select-none w-full flex justify-center ${className}`}>
       
@@ -301,7 +308,7 @@ export default function EditableImage({
       >
         {imgSrc ? (
           <img
-            src={imgSrc}
+            src={getDisplaySrc(imgSrc)}
             alt={alt}
             onError={handleImageError}
             referrerPolicy="no-referrer"
