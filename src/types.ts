@@ -110,6 +110,12 @@ export interface CtaConfig {
   };
 }
 
+export interface IntermediateCtaConfig {
+  title: string;
+  description: string;
+  btnText: string;
+}
+
 export interface FooterConfig {
   description: string;
   credentialsTitle: string;
@@ -169,6 +175,7 @@ export interface LandingPageData {
     items: FaqItem[];
   };
   cta: CtaConfig;
+  intermediateCta?: IntermediateCtaConfig;
   footer: FooterConfig;
   waNumber: string;
   waMessage: string;

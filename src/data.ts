@@ -327,6 +327,11 @@ export const defaultLandingPageData: LandingPageData = {
       "creci": "CRECI-PB 12018"
     }
   },
+  "intermediateCta": {
+    "title": "Deseja consultar oportunidades disponíveis agora?",
+    "description": "Acesse o catálogo atualizado com as melhores taxas de rentabilidade de flats e apartamentos residenciais.",
+    "btnText": "Falar agora"
+  },
   "footer": {
     "description": "Consultoria imobiliária especializada em investimentos na Zona Norte de João Pessoa. Apartamentos e flats para morar, valorizar patrimônio e gerar renda passiva com segurança.",
     "credentialsTitle": "Dados profissionais",

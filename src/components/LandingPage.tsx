@@ -30,8 +30,15 @@ const getSpecialtyFallbackImage = (id: string, index: number) => {
 };
 
 export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar }: LandingPageProps) {
-  const { theme, nav, hero, stats, specialties, advantages, credentials, region, process, testimonials, faq, cta, footer, waNumber, waMessage, pageBgUrl, pageBgOpacity = 5, pageBgParallax = true } = data;
+  const { theme, nav, hero, stats, specialties, advantages, credentials, region, process, testimonials, faq, cta, intermediateCta, footer, waNumber, waMessage, pageBgUrl, pageBgOpacity = 5, pageBgParallax = true } = data;
   const [showPageBgCtrl, setShowPageBgCtrl] = React.useState(false);
+
+  const safeIntermediateCta = {
+    title: "Deseja consultar oportunidades disponíveis agora?",
+    description: "Acesse o catálogo atualizado com as melhores taxas de rentabilidade de flats e apartamentos residenciais.",
+    btnText: "Falar agora",
+    ...(intermediateCta || {})
+  };
 
   const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
 
@@ -145,6 +152,29 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
 
   const handleCtaChange = (field: 'title' | 'description' | 'btnText', value: string) => {
     onChange({ ...data, cta: { ...cta, [field]: value } });
+  };
+
+  const handleCtaContactChange = (field: 'address' | 'phone' | 'creci', value: string) => {
+    onChange({
+      ...data,
+      cta: {
+        ...cta,
+        contacts: {
+          ...cta.contacts,
+          [field]: value
+        }
+      }
+    });
+  };
+
+  const handleIntermediateCtaChange = (field: 'title' | 'description' | 'btnText', value: string) => {
+    onChange({
+      ...data,
+      intermediateCta: {
+        ...safeIntermediateCta,
+        [field]: value
+      }
+    });
   };
 
   const handleFooterChange = (field: 'description' | 'copyright', value: string) => {
@@ -673,20 +703,20 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
             <div className="space-y-1.5">
               <h3 className="text-lg sm:text-xl font-bold text-zinc-100 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Deseja consultar oportunidades disponíveis agora?
+                <EditableText value={safeIntermediateCta.title} onChange={(v) => handleIntermediateCtaChange('title', v)} isEditMode={isEditMode} />
               </h3>
               <p className="text-xs text-zinc-400">
-                Acesse o catálogo atualizado com as melhores taxas de rentabilidade de flats e apartamentos residenciais.
+                <EditableText value={safeIntermediateCta.description} onChange={(v) => handleIntermediateCtaChange('description', v)} isEditMode={isEditMode} multiline />
               </p>
             </div>
             <a
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all shrink-0 whitespace-nowrap"
             >
               <DynamicIcon name="Phone" size={13} />
-              <span>Falar agora</span>
+              <EditableText value={safeIntermediateCta.btnText} onChange={(v) => handleIntermediateCtaChange('btnText', v)} isEditMode={isEditMode} />
             </a>
           </div>
         </div>
@@ -1054,7 +1084,7 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
             {/* Left Col */}
             <div className="lg:col-span-7 space-y-6 text-left relative z-10">
               <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-200 to-zinc-500">
-                <EditableText value={cta.title} onChange={(v) => handleCtaChange('title', v)} isEditMode={isEditMode} multiline style={{ fontSize: '45px' }} />
+                <EditableText value={cta.title} onChange={(v) => handleCtaChange('title', v)} isEditMode={isEditMode} multiline />
               </h2>
               <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-lg">
                 <EditableText value={cta.description} onChange={(v) => handleCtaChange('description', v)} isEditMode={isEditMode} multiline />
@@ -1077,19 +1107,19 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
                 <div className="flex gap-3 text-zinc-400">
                   <DynamicIcon name="MapPin" size={16} className="text-amber-500 shrink-0" />
                   <span className="text-xs">
-                    <EditableText value={cta.contacts.address} onChange={(v) => handleCtaChange('btnText', v)} isEditMode={isEditMode} />
+                    <EditableText value={cta.contacts.address} onChange={(v) => handleCtaContactChange('address', v)} isEditMode={isEditMode} />
                   </span>
                 </div>
                 <div className="flex gap-3 text-zinc-400">
                   <DynamicIcon name="Phone" size={16} className="text-amber-500 shrink-0" />
                   <span className="text-xs">
-                    <EditableText value={cta.contacts.phone} onChange={(v) => handleCtaChange('btnText', v)} isEditMode={isEditMode} />
+                    <EditableText value={cta.contacts.phone} onChange={(v) => handleCtaContactChange('phone', v)} isEditMode={isEditMode} />
                   </span>
                 </div>
                 <div className="flex gap-3 text-zinc-400">
                   <DynamicIcon name="Award" size={16} className="text-amber-500 shrink-0" />
                   <span className="text-xs">
-                    <EditableText value={cta.contacts.creci} onChange={(v) => handleCtaChange('btnText', v)} isEditMode={isEditMode} />
+                    <EditableText value={cta.contacts.creci} onChange={(v) => handleCtaContactChange('creci', v)} isEditMode={isEditMode} />
                   </span>
                 </div>
               </div>
