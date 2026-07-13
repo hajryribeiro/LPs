@@ -155,15 +155,29 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
   };
 
   const handleCtaContactChange = (field: 'address' | 'phone' | 'creci', value: string) => {
+    const updatedCta = {
+      ...cta,
+      contacts: {
+        ...cta.contacts,
+        [field]: value
+      }
+    };
+    
+    const updatedFooter = { ...footer };
+    if (field === 'address') {
+      updatedFooter.addressItems = [...(footer.addressItems || [])];
+      updatedFooter.addressItems[0] = value;
+    }
+    if (field === 'creci') {
+      updatedFooter.credentialsItems = [...(footer.credentialsItems || [])];
+      const cleanVal = value.toUpperCase().includes('CRECI') ? value : `CRECI-PB ${value.replace(/\D/g, '')}`;
+      updatedFooter.credentialsItems[2] = cleanVal;
+    }
+
     onChange({
       ...data,
-      cta: {
-        ...cta,
-        contacts: {
-          ...cta.contacts,
-          [field]: value
-        }
-      }
+      cta: updatedCta,
+      footer: updatedFooter
     });
   };
 
@@ -392,7 +406,7 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4.5 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/15"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/15"
           >
             <DynamicIcon name="Phone" size={13} className="fill-zinc-950" />
             <EditableText value={hero.btnWaText} onChange={(v) => handleHeroChange('btnWaText', v)} isEditMode={isEditMode} />
@@ -915,122 +929,72 @@ export default function LandingPage({ data, onChange, isEditMode, onOpenSidebar 
             </h2>
           </div>
 
-          {isEditMode ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-left">
-              {testimonials.items.map((item) => (
-                <div key={item.id} className="p-4 rounded-2xl bg-zinc-900 border border-white/5 flex flex-col justify-between gap-4 hover:border-amber-500/10 transition-all">
-                  <div className="space-y-3">
+          <style dangerouslySetInnerHTML={{ __html: `
+            @keyframes marquee-react {
+              0% { transform: translateX(0%); }
+              100% { transform: translateX(-33.3333%); }
+            }
+            .animate-marquee-css {
+              display: flex;
+              width: max-content;
+              animation: marquee-react 45s linear infinite;
+            }
+            .animate-marquee-css:hover {
+              animation-play-state: paused;
+            }
+          `}} />
+
+          <div className="relative w-full overflow-hidden py-4 -my-4 [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+            <div className="animate-marquee-css gap-6 flex">
+              {[...testimonials.items, ...testimonials.items, ...testimonials.items].map((item, idx) => (
+                <div
+                  key={`${item.id}-dup-${idx}`}
+                  className="w-[280px] sm:w-[350px] p-6 rounded-3xl bg-zinc-900/60 border border-white/5 flex flex-col justify-between gap-6 hover:border-amber-500/20 hover:bg-zinc-900/80 transition-all duration-300 shrink-0 select-none text-left"
+                >
+                  <div className="space-y-4">
                     {/* Rating Stars */}
-                    <div className="flex gap-0.5 text-amber-400">
+                    <div className="flex gap-1 text-amber-400">
                       {Array.from({ length: item.stars }).map((_, i) => (
-                        <DynamicIcon key={i} name="Star" size={12} className="fill-current" />
+                        <DynamicIcon key={i} name="Star" size={14} className="fill-current" />
                       ))}
                     </div>
 
-                    <blockquote className="text-xs text-zinc-300 leading-relaxed italic">
-                      "<EditableText value={item.quote} onChange={(v) => handleTestimonialChange(item.id, 'quote', v)} isEditMode={isEditMode} multiline />"
+                    <blockquote className="text-xs sm:text-sm text-zinc-300 leading-relaxed italic whitespace-pre-wrap">
+                      {isEditMode ? (
+                        <>
+                          "<EditableText value={item.quote} onChange={(v) => handleTestimonialChange(item.id, 'quote', v)} isEditMode={isEditMode} multiline />"
+                        </>
+                      ) : (
+                        `"${item.quote}"`
+                      )}
                     </blockquote>
                   </div>
 
-                  <div className="flex items-center gap-3 border-t border-white/5 pt-3">
-                    <div className="w-10 h-10 rounded-full border border-amber-500/30 bg-zinc-950 shrink-0 relative flex items-center justify-center">
-                      <EditableImage
-                        id={`test-avatar-${item.id}`}
-                        src={item.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
-                        alt={item.name}
-                        className="w-full h-full object-cover rounded-full"
-                        isEditMode={isEditMode}
-                        onChangeSrc={(newSrc) => handleTestimonialChange(item.id, 'avatarUrl', newSrc)}
-                        imageStyles={data.imageStyles}
-                        onChangeStyles={handleImageStyleChange}
-                        defaultStyles={{
-                          width: 40,
-                          height: 40,
-                          scale: 1,
-                          borderRadius: 9999,
-                          rotation: 0,
-                          translateX: 0,
-                          translateY: 0
-                        }}
-                      />
+                  <div className="flex items-center gap-4 border-t border-white/5 pt-4">
+                    <div className="w-12 h-12 rounded-full border border-amber-500/30 bg-zinc-950 shrink-0 flex items-center justify-center font-bold text-sm text-amber-500 shadow-lg shadow-amber-500/5">
+                      {item.initials || item.name.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <b className="text-[11px] text-zinc-200 block truncate">
-                        <EditableText value={item.name} onChange={(v) => handleTestimonialChange(item.id, 'name', v)} isEditMode={isEditMode} />
+                      <b className="text-xs text-zinc-200 block truncate">
+                        {isEditMode ? (
+                          <EditableText value={item.name} onChange={(v) => handleTestimonialChange(item.id, 'name', v)} isEditMode={isEditMode} />
+                        ) : (
+                          item.name
+                        )}
                       </b>
-                      <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest block truncate">
-                        <EditableText value={item.sub} onChange={(v) => handleTestimonialChange(item.id, 'sub', v)} isEditMode={isEditMode} />
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block truncate">
+                        {isEditMode ? (
+                          <EditableText value={item.sub} onChange={(v) => handleTestimonialChange(item.id, 'sub', v)} isEditMode={isEditMode} />
+                        ) : (
+                          item.sub
+                        )}
                       </span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="relative w-full overflow-hidden py-4 -my-4 [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
-              <motion.div
-                className="flex gap-6 w-max"
-                animate={{ x: ["0%", "-33.3333%"] }}
-                transition={{
-                  ease: "linear",
-                  duration: 45,
-                  repeat: Infinity,
-                }}
-              >
-                {[...testimonials.items, ...testimonials.items, ...testimonials.items].map((item, idx) => (
-                  <div
-                    key={`${item.id}-dup-${idx}`}
-                    className="w-[280px] sm:w-[350px] p-6 rounded-3xl bg-zinc-900/60 border border-white/5 flex flex-col justify-between gap-6 hover:border-amber-500/20 hover:bg-zinc-900/80 transition-all duration-300 shrink-0 select-none text-left"
-                  >
-                    <div className="space-y-4">
-                      {/* Rating Stars */}
-                      <div className="flex gap-1 text-amber-400">
-                        {Array.from({ length: item.stars }).map((_, i) => (
-                          <DynamicIcon key={i} name="Star" size={14} className="fill-current" />
-                        ))}
-                      </div>
-
-                      <blockquote className="text-xs sm:text-sm text-zinc-300 leading-relaxed italic whitespace-pre-wrap">
-                        "{item.quote}"
-                      </blockquote>
-                    </div>
-
-                    <div className="flex items-center gap-4 border-t border-white/5 pt-4">
-                      <div className="w-12 h-12 rounded-full border border-amber-500/30 bg-zinc-950 shrink-0 relative flex items-center justify-center">
-                        <EditableImage
-                          id={`test-avatar-${item.id}`}
-                          src={item.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150'}
-                          alt={item.name}
-                          className="w-full h-full object-cover rounded-full"
-                          isEditMode={false}
-                          onChangeSrc={() => {}}
-                          imageStyles={data.imageStyles}
-                          onChangeStyles={handleImageStyleChange}
-                          defaultStyles={{
-                            width: 48,
-                            height: 48,
-                            scale: 1,
-                            borderRadius: 9999,
-                            rotation: 0,
-                            translateX: 0,
-                            translateY: 0
-                          }}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <b className="text-xs text-zinc-200 block truncate">
-                          {item.name}
-                        </b>
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest block truncate">
-                          {item.sub}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-          )}
+          </div>
 
         </div>
       </section>

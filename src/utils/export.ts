@@ -6,10 +6,13 @@ import { defaultHeroImage } from '../defaultHeroImage';
  */
 function getIconSvg(iconName: string): string {
   switch (iconName.toLowerCase()) {
-    case 'phone':
     case 'wa':
     case 'whatsapp':
       return `<path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.95 1.36-.5.05-1.13.07-1.82-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.79-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-2.99 0-1.42.75-2.12 1.01-2.41.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.58.82 2 .89 2.15.07.14.12.31.02.5-.09.19-.14.31-.27.48-.14.16-.29.37-.41.49-.14.14-.28.28-.12.55.16.27.71 1.17 1.53 1.9 1.05.93 1.94 1.22 2.21 1.36.27.14.43.12.59-.07.16-.19.68-.79.86-1.06.18-.27.36-.22.61-.13.24.09 1.55.73 1.82.86.27.14.44.2.51.31.07.12.07.66-.17 1.34z"/>`;
+    case 'phone':
+    case 'phone-receiver':
+    case 'telephone':
+      return `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`;
     case 'building':
     case 'building2':
       return `<path d="M3 21V9l9-6 9 6v12M9 21v-6h6v6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`;
@@ -48,7 +51,7 @@ function getIconSvg(iconName: string): string {
 function renderIconSvg(iconName: string, className: string = 'w-4 h-4'): string {
   const name = iconName.toLowerCase();
   const inner = getIconSvg(name);
-  if (name === 'phone' || name === 'wa' || name === 'whatsapp' || name === 'star') {
+  if (name === 'wa' || name === 'whatsapp' || name === 'star') {
     return `<svg class="${className} fill-current" viewBox="0 0 24 24">${inner}</svg>`;
   }
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none">${inner}</svg>`;
@@ -114,13 +117,13 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
     title: 'VAMOS ENCONTRAR O IMÓVEL IDEAL PARA VOCÊ',
     description: 'Receba uma consultoria personalizada e descubra as melhores oportunidades para investir ou morar em João Pessoa.',
     btnText: 'FALAR AGORA',
+    ...(rawCta || {}),
     contacts: {
       address: 'Av. Pres. Epitácio Pessoa, 2580 — Tambauzinho, João Pessoa/PB',
       phone: '(83) 98165-8115 · WhatsApp',
       creci: 'CRECI-PB 12018',
       ...(rawCta?.contacts || {})
-    },
-    ...(rawCta || {})
+    }
   };
 
   const safeIntermediateCta = {
@@ -153,7 +156,7 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
   let finalHeroBase64 = '';
   let isHeroMont = true;
   const imgUrl = hero.imageUrl || '';
-  if (imgUrl === '/mont4.png' || imgUrl === 'mont4.png' || imgUrl.endsWith('mont4.png') || !imgUrl) {
+  if (imgUrl.includes('mont4.png') || !imgUrl) {
     try {
       finalHeroBase64 = await imgToBase64('/mont4.png');
       if (!finalHeroBase64 || finalHeroBase64 === '/mont4.png') {
@@ -212,7 +215,27 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
     } else {
       const src = item.imageUrl || getSpecialtyFallbackImage(item.id, index);
       const base64Src = await imgToBase64(src);
-      renderGraphic = `<img src="${base64Src}" alt="${item.title}" class="absolute inset-0 w-full h-full object-cover" />`;
+      const specStyle = imageStyles[`spec-${item.id}`] || {
+        scale: 1.05,
+        borderRadius: 24,
+        rotation: 0,
+        translateX: 0,
+        translateY: 0
+      };
+      const scale = specStyle.scale ?? 1.05;
+      const rot = specStyle.rotation ?? 0;
+      const tx = specStyle.translateX ?? 0;
+      const ty = specStyle.translateY ?? 0;
+      const br = specStyle.borderRadius ?? 24;
+      renderGraphic = `
+        <div style="width: 100%; height: 100%; border-radius: ${br}px; overflow: hidden; position: relative;">
+          <img src="${base64Src}" alt="${item.title}" class="absolute inset-0 w-full h-full object-cover" style="
+            transform: translate(${tx}px, ${ty}px) scale(${scale}) rotate(${rot}deg);
+            transform-origin: center center;
+            transition: transform 0.15s ease-out;
+          " />
+        </div>
+      `;
     }
 
     return `
@@ -234,14 +257,6 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
 
   // Compile testimonials HTML
   const singleTestimonialHtmlPromises = testimonials.items.map(async (item) => {
-    let avatarHtml = '';
-    if (item.avatarUrl) {
-      const base64Avatar = await imgToBase64(item.avatarUrl);
-      avatarHtml = `<img src="${base64Avatar}" alt="${item.name}" class="w-full h-full object-cover rounded-full" />`;
-    } else {
-      avatarHtml = `<div class="w-full h-full rounded-full bg-zinc-950 flex items-center justify-center font-bold text-xs text-amber-500">${item.initials}</div>`;
-    }
-
     let starsHtml = '';
     for (let i = 0; i < item.stars; i++) {
       starsHtml += renderIconSvg('star', 'w-3.5 h-3.5');
@@ -254,8 +269,8 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
           <blockquote class="text-xs sm:text-sm text-zinc-300 leading-relaxed italic whitespace-pre-wrap">"${item.quote}"</blockquote>
         </div>
         <div class="flex items-center gap-4 border-t border-white/5 pt-4">
-          <div class="w-12 h-12 rounded-full border border-amber-500/30 bg-zinc-950 shrink-0 relative flex items-center justify-center">
-            ${avatarHtml}
+          <div class="w-12 h-12 rounded-full border border-amber-500/30 bg-zinc-950 shrink-0 flex items-center justify-center font-bold text-sm text-amber-500 shadow-lg shadow-amber-500/5">
+            ${item.initials || item.name.charAt(0)}
           </div>
           <div class="min-w-0">
             <b class="text-xs text-zinc-200 block truncate">${item.name}</b>
@@ -375,8 +390,8 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
       scroll-behavior: smooth;
     }
     body {
-      background-color: #090a0f;
-      color: #ecebe8;
+      background-color: ${theme.bg || '#090a0f'};
+      color: ${theme.text || '#ecebe8'};
       font-family: 'Inter', sans-serif;
     }
     
@@ -385,7 +400,7 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
       width: 8px;
     }
     ::-webkit-scrollbar-track {
-      background: #090a0f;
+      background: ${theme.bg || '#090a0f'};
     }
     ::-webkit-scrollbar-thumb {
       background: #1c1e24;
@@ -505,8 +520,8 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
         `).join('')}
       </nav>
 
-      <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4.5 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/15">
-        ${renderIconSvg('phone', 'w-[13px] h-[13px] fill-zinc-950')}
+      <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/15">
+        ${renderIconSvg('phone', 'w-[13px] h-[13px]')}
         <span>${hero.btnWaText}</span>
       </a>
     </div>
@@ -817,7 +832,7 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
       <div class="relative overflow-hidden rounded-[32px] border border-white/5 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 p-8 sm:p-12 lg:p-16 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
         
         <!-- Ambient Shine background effect -->
-        <div class="absolute inset-y-0 -left-[10%] w-[50%] bg-gradient-to-r from-amber-500/5 via-transparent to-transparent pointer-events-none filter blur-2xl" />
+        <div class="absolute inset-y-0 -left-[10%] w-[50%] bg-gradient-to-r from-amber-500/5 via-transparent to-transparent pointer-events-none filter blur-2xl"></div>
 
         <!-- Left Col -->
         <div class="lg:col-span-7 space-y-6 text-left relative z-10">
@@ -832,7 +847,7 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
         <!-- Right Col Contacts list -->
         <div class="lg:col-span-5 space-y-6 relative z-10 text-left">
           <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-950 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-emerald-500/10 w-full sm:w-auto justify-center">
-            ${renderIconSvg('phone', 'w-4 h-4 fill-zinc-950')}
+            ${renderIconSvg('phone', 'w-4 h-4')}
             <span>${cta.btnText}</span>
           </a>
 
@@ -912,7 +927,7 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
             ${renderIconSvg('instagram', 'w-3.5 h-3.5')}
           </a>
           <a href="${waLink}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="text-zinc-500 hover:text-emerald-500 transition-colors">
-            ${renderIconSvg('phone', 'w-3.5 h-3.5 fill-current')}
+            ${renderIconSvg('whatsapp', 'w-3.5 h-3.5')}
           </a>
         </div>
       </div>
@@ -922,7 +937,7 @@ export async function exportToHtml(data: LandingPageData, includeEditor: boolean
 
   <!-- Floating WhatsApp Action -->
   <a href="${waLink}" target="_blank" rel="noopener" class="fixed right-5 bottom-[22px] z-[150] w-14 h-14 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 hover:brightness-105 active:scale-95 transition-all" aria-label="Falar no WhatsApp">
-    ${renderIconSvg('phone', 'w-7 h-7 fill-zinc-950')}
+    ${renderIconSvg('whatsapp', 'w-7 h-7')}
   </a>
 
   ${includeEditor ? `

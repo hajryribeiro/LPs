@@ -144,9 +144,27 @@ export default function EditableImage({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         if (typeof reader.result === 'string') {
-          onChangeSrc(reader.result);
+          const base64 = reader.result;
+          if (id === 'hero') {
+            try {
+              const res = await fetch('/api/save-hero-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64 })
+              });
+              const resData = await res.json();
+              if (resData.path) {
+                // Use a cache-busting timestamp to force immediate reload of the new photo
+                onChangeSrc(`${resData.path}?t=${Date.now()}`);
+                return;
+              }
+            } catch (err) {
+              console.error('Failed to save hero image to server:', err);
+            }
+          }
+          onChangeSrc(base64);
         }
       };
       reader.readAsDataURL(file);
@@ -290,9 +308,6 @@ export default function EditableImage({
   };
 
   const getDisplaySrc = (url: string) => {
-    if (url && url.startsWith('/') && !url.startsWith('//') && !url.startsWith('data:')) {
-      return url.substring(1);
-    }
     return url;
   };
 

@@ -20,10 +20,11 @@ export default function EditableText({
   style,
 }: EditableTextProps) {
   const elementRef = useRef<any>(null);
+  const isFocused = useRef(false);
 
-  // Sync value from props to contentEditable element
+  // Sync value from props to contentEditable element only if not focused
   useEffect(() => {
-    if (elementRef.current && elementRef.current.innerText !== value) {
+    if (elementRef.current && !isFocused.current && elementRef.current.innerText !== value) {
       elementRef.current.innerText = value;
     }
   }, [value]);
@@ -34,7 +35,12 @@ export default function EditableText({
     return <Tag className={className} style={style}>{value}</Tag>;
   }
 
+  const handleFocus = () => {
+    isFocused.current = true;
+  };
+
   const handleBlur = () => {
+    isFocused.current = false;
     if (elementRef.current) {
       const newValue = elementRef.current.innerText.trim();
       onChange(newValue || value); // Fallback to original value if left blank
@@ -53,6 +59,7 @@ export default function EditableText({
       ref={elementRef}
       contentEditable
       suppressContentEditableWarning
+      onFocus={handleFocus}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       style={style}
@@ -65,3 +72,4 @@ export default function EditableText({
     />
   );
 }
+
